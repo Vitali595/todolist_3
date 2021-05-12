@@ -1,4 +1,4 @@
-import {FilterValuesType, TasksStateType} from "../App";
+import {TasksStateType} from "../App";
 import {v1} from "uuid";
 import {TaskType} from "../Todolist";
 import {AddTodolistAT, RemoveTodolistAT} from "./todolists-reducer";
@@ -16,14 +16,14 @@ type addTaskAT = {
 }
 
 type changeTaskStatusAT = {
-    type: 'CHANGE-TODOLIST-STATUS'
+    type: 'CHANGE-TASK-STATUS'
     taskId: string
     isDone: boolean
     todolistId: string
 }
 
 type changeTaskTitleAT = {
-    type: 'CHANGE-TODOLIST-TITLE'
+    type: 'CHANGE-TASK-TITLE'
     taskId: string
     title: string
     todolistId: string
@@ -36,7 +36,9 @@ type ActionType = RemoveTaskAT
     | AddTodolistAT
     | RemoveTodolistAT
 
-export const tasksReducer = (state: TasksStateType, action: ActionType): TasksStateType => {
+const initialState: TasksStateType = {}
+
+export const tasksReducer = (state: TasksStateType = initialState, action: ActionType): TasksStateType => {
     switch (action.type) {
         case "REMOVE-TASK": {
             let stateCopy = {...state}
@@ -53,7 +55,7 @@ export const tasksReducer = (state: TasksStateType, action: ActionType): TasksSt
             }
             return {...state, [action.todolistId]: [newTask, ...state[action.todolistId]]}
         }
-        case "CHANGE-TODOLIST-STATUS": {
+        case "CHANGE-TASK-STATUS": {
             let stateCopy = {...state}
             let updateTasks = stateCopy[action.todolistId].map(t => t.id === action.taskId ? {
                 ...t,
@@ -61,7 +63,7 @@ export const tasksReducer = (state: TasksStateType, action: ActionType): TasksSt
             } : t)
             return {...stateCopy, [action.todolistId]: updateTasks}
         }
-        case "CHANGE-TODOLIST-TITLE": {
+        case "CHANGE-TASK-TITLE": {
             let stateCopy = {...state}
             let updateTasks = stateCopy[action.todolistId].map(t => t.id === action.taskId ? {
                 ...t,
@@ -78,7 +80,7 @@ export const tasksReducer = (state: TasksStateType, action: ActionType): TasksSt
             return stateCopy
         }
         default:
-            throw new Error("I don't understand this type")
+            return state
     }
 }
 
@@ -98,7 +100,7 @@ export const addTaskAC = (title: string, todolistId: string): addTaskAT => {
 }
 export const changeTaskStatusAC = (taskId: string, isDone: boolean, todolistId: string): changeTaskStatusAT => {
     return {
-        type: "CHANGE-TODOLIST-STATUS" as const,
+        type: "CHANGE-TASK-STATUS" as const,
         taskId,
         isDone,
         todolistId
@@ -106,7 +108,7 @@ export const changeTaskStatusAC = (taskId: string, isDone: boolean, todolistId: 
 }
 export const changeTaskTitleAC = (taskId: string, title: string, todolistId: string): changeTaskTitleAT => {
     return {
-        type: "CHANGE-TODOLIST-TITLE" as const,
+        type: "CHANGE-TASK-TITLE" as const,
         taskId,
         title,
         todolistId
