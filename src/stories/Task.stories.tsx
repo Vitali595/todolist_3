@@ -3,6 +3,8 @@ import {Meta, Story} from '@storybook/react';
 import {AddItemForm, AddItemFormPropsType} from "../AddItemForm";
 import {action} from "@storybook/addon-actions";
 import {Task, TaskPropsType} from "../Task";
+import {v1} from "uuid";
+import {TaskPriorities, TaskStatuses} from "../api/todolist-api";
 
 export default {
     title: 'Todolist/Task',
@@ -24,13 +26,31 @@ const baseArgs = {
 export const TaskIsDoneExample = Template.bind({});
 TaskIsDoneExample.args = {
     ...baseArgs,
-    task: {id: "1", isDone: true, title: "JS"},
+    task: {
+        id: "1", title: "CSS", status: TaskStatuses.Completed,
+        addedDate: "",
+        deadline: "",
+        description: "",
+        order: 0,
+        priority: TaskPriorities.Low,
+        startDate: "",
+        todoListId: "todolistId1"
+    },
     todolistId: "todolistId1"
 };
 
 export const TaskIsNoteDoneExample = Template.bind({});
 TaskIsNoteDoneExample.args = {
     ...baseArgs,
-    task: {id: "1", isDone: false, title: "JS"},
-    todolistId: "todolistId1"
+    task: {
+        id: "1", status: TaskStatuses.New, title: "JS",
+        addedDate: "",
+        deadline: "",
+        description: "",
+        order: 0,
+        priority: TaskPriorities.Low,
+        startDate: "",
+        todoListId: "todolistId1"
+    },
+    todolistId: "todolistId1",
 };

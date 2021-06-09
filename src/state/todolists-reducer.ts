@@ -1,5 +1,6 @@
-import {FilterValuesType, TodolistType} from "../App";
 import {v1} from "uuid";
+import {Dispatch} from "redux";
+import {todolistAPI, TodolistType} from "../api/todolist-api";
 
 export type RemoveTodolistAT = {
     type: 'REMOVE-TODOLIST'
@@ -8,8 +9,7 @@ export type RemoveTodolistAT = {
 
 export type AddTodolistAT = {
     type: 'ADD-TODOLIST'
-    title: string
-    id: string
+    todolist: TodolistType
 }
 
 type ChangeTodolistTitleAT = {
@@ -24,23 +24,41 @@ type ChangeTodolistFilterAT = {
     id: string
 }
 
-type ActionType = RemoveTodolistAT | AddTodolistAT | ChangeTodolistTitleAT | ChangeTodolistFilterAT
+export type SetTodolistsAT = {
+    type: "SET-TODOLISTS"
+    todolists: Array<TodolistType>
+}
 
-const initialState: Array<TodolistType> = []
+type ActionType = RemoveTodolistAT
+    | AddTodolistAT
+    | ChangeTodolistTitleAT
+    | ChangeTodolistFilterAT
+    | SetTodolistsAT
 
-export const todolistsReducer = (state: Array<TodolistType> = initialState, action: ActionType): Array<TodolistType> => {
+const initialState: Array<TodolistDomainType> = []
+
+export type FilterValuesType = "all" | "completed" | "active"
+
+export type TodolistDomainType = TodolistType & {
+    filter: FilterValuesType
+}
+
+export const todolistsReducer = (state: Array<TodolistDomainType> = initialState, action: ActionType): Array<TodolistDomainType> => {
     switch (action.type) {
+        case "SET-TODOLISTS": {
+            return action.todolists.map(tl => {
+                return {
+                    ...tl,
+                    filter: "all"
+                }
+            })
+        }
         case "REMOVE-TODOLIST": {
             return [...state.filter(tl => tl.id !== action.id)]
         }
-
         case "ADD-TODOLIST": {
-            let newTodolist: TodolistType = {
-                id: action.id,
-                title: action.title,
-                filter: "all"
-            }
-            return [...state, newTodolist]
+            const newTodolist: TodolistDomainType = {...action.todolist, filter: "all"}
+            return [newTodolist, ...state]
         }
         case "CHANGE-TODOLIST-TITLE": {
             return state.map(tl => tl.id === action.id ? {...tl, title: action.title} : tl)
@@ -59,12 +77,8 @@ export const removeTodolistAC = (todolistId: string): RemoveTodolistAT => {
         id: todolistId
     }
 }
-export const addTodolistAC = (title: string): AddTodolistAT => {
-    return {
-        type: "ADD-TODOLIST" as const,
-        title,
-        id: v1()
-    }
+export const addTodolistAC = (todolist: TodolistType): AddTodolistAT => {
+    return {type: "ADD-TODOLIST", todolist}
 }
 export const changeTodolistTitleAC = (todolistId: string, title: string): ChangeTodolistTitleAT => {
     return {
@@ -78,5 +92,45 @@ export const changeTodolistFilterAC = (filter: FilterValuesType, todolistId: str
         type: "CHANGE-TODOLIST-FILTER" as const,
         filter,
         id: todolistId
+    }
+}
+
+export const setTodolistsAC = (todolists: Array<TodolistType>): SetTodolistsAT => {
+    return {type: "SET-TODOLISTS", todolists}
+}
+
+export const fetchTodolistsTC = () => {
+    return (dispatch: Dispatch) => {
+        todolistAPI.getTodolists()
+            .then((res) => {
+                dispatch(setTodolistsAC(res.data))
+            })
+    }
+}
+
+export const removeTodolistTC = (todolistId: string) => {
+    return (dispatch: Dispatch) => {
+        todolistAPI.deleteTodolist(todolistId)
+            .then(res => {
+                dispatch(removeTodolistAC(todolistId))
+            })
+    }
+}
+
+export const addTodolistTC = (title: string) => {
+    return (dispatch: Dispatch) => {
+        todolistAPI.createTodolist(title)
+            .then(res => {
+                dispatch(addTodolistAC(res.data.data.item))
+            })
+    }
+}
+
+export const changeTodolistTitleTC = (todolistId: string, title: string) => {
+    return (dispatch: Dispatch) => {
+        todolistAPI.updateTodolist(todolistId, title)
+            .then(res => {
+                dispatch(changeTodolistTitleAC(todolistId, title))
+            })
     }
 }
